@@ -7,8 +7,8 @@ _logger = logging.getLogger(__name__)
 
 
 class FroniusInverterApi(InverterApi):
-    def __init__(self, base_url: str, device_id: int = 1, scope: dict = None):
-        super().__init__(base_url)
+    def __init__(self, conf_folder: str, device_id: int = 1, scope: dict = None):
+        super().__init__(conf_folder)
         self.device_id = device_id
         data = self.get_api_version()
         self.base_url_with_ver = self.base_url + data["BaseURL"]

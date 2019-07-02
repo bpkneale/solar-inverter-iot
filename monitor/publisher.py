@@ -11,7 +11,7 @@ _logger = logging.getLogger(__name__)
 
 def get_client(secrets_folder: str) -> Tuple[AWSIoTMQTTClient, str]:
 
-    with open(os.path.join(secrets_folder, "aws.json"), "r") as fh:
+    with open(os.path.join(secrets_folder, "conf.json"), "r") as fh:
         data = json.load(fh)
 
     endpoint = data["endpoint"]

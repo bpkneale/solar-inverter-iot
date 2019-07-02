@@ -6,22 +6,34 @@ import logging
 import argparse
 
 
+WAIT_TIME = 60
+
+
 def main():
     logging.basicConfig(level=logging.INFO)
+    _logger = logging.getLogger(__name__)
     parser = argparse.ArgumentParser(description="Solar Inverter IoT client")
-    parser.add_argument("--secrets", dest='secrets', type=str, help='Path to client secrets (certs, config, etc)',
-                        default='secrets')
+    parser.add_argument("--conf", dest='conf', type=str, help='Path to a configuration folder (certs, conf, etc)',
+                        default='conf')
     args = parser.parse_args()
-    api = FroniusInverterApi("http://192.168.1.111")
-    pub = Publisher(args.secrets)
-    monitor = InverterMonitor(api, pub)
-    monitor.start()
+    monitor = None
     try:
         while True:
-            time.sleep(10)
+            try:
+                api = FroniusInverterApi(args.conf)
+                pub = Publisher(args.conf)
+                monitor = InverterMonitor(api, pub)
+                monitor.start()
+                while True:
+                    time.sleep(10)
+            except Exception:
+                _logger.exception("Catching exception (probably IOError?) and waiting %d seconds" % WAIT_TIME)
+                time.sleep(WAIT_TIME)
     except KeyboardInterrupt:
         pass
-    monitor.stop(2.0)
+
+    if monitor is not None:
+        monitor.stop(2.0)
 
 
 if __name__ == '__main__':
