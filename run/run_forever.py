@@ -10,7 +10,7 @@ WAIT_TIME = 60
 
 
 def main():
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
     _logger = logging.getLogger(__name__)
     parser = argparse.ArgumentParser(description="Solar Inverter IoT client")
     parser.add_argument("--conf", dest='conf', type=str, help='Path to a configuration folder (certs, conf, etc)',
@@ -24,8 +24,7 @@ def main():
                 pub = Publisher(args.conf)
                 monitor = InverterMonitor(api, pub)
                 monitor.start()
-                while True:
-                    time.sleep(10)
+                monitor.join()
             except Exception:
                 _logger.exception("Catching exception (probably IOError?) and waiting %d seconds" % WAIT_TIME)
                 time.sleep(WAIT_TIME)
