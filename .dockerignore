@@ -1,4 +1,5 @@
 secrets
+conf
 .env
 .idea
 **/__pycache__

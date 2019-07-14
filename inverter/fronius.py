@@ -10,6 +10,7 @@ class FroniusInverterApi(InverterApi):
     def __init__(self, conf_folder: str, device_id: int = 1, scope: dict = None):
         super().__init__(conf_folder)
         self.device_id = device_id
+        self._session = requests.session()
         data = self.get_api_version()
         self.base_url_with_ver = self.base_url + data["BaseURL"]
         self.scope = scope or {
@@ -19,7 +20,7 @@ class FroniusInverterApi(InverterApi):
 
     def _get(self, url, params=None) -> requests.Response:
         _logger.debug("[me] -> [%s]" % url)
-        resp = requests.get(url, params or {})
+        resp = self._session.get(url, params=params or {})
         extra = "[no_reason]"
         try:
             extra = resp.json()["Head"]["Status"]["Reason"]
