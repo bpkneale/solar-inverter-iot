@@ -1,5 +1,7 @@
 import json
 import os
+import logging
+import sys
 
 
 class InverterApi(object):
@@ -9,6 +11,10 @@ class InverterApi(object):
         self.base_url = conf["fronius_ip"]  # type: str
         if not self.base_url.startswith("http://"):
             self.base_url = "http://" + self.base_url
+
+        self._logger = logging.getLogger(__name__)
+        self._logger.addHandler(logging.StreamHandler(stream=sys.stdout))
+        self._logger.setLevel(logging.DEBUG)
 
     def get_realtime_data(self) -> dict:
         raise NotImplemented

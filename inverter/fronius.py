@@ -3,9 +3,6 @@ import logging
 from .inverter import InverterApi
 
 
-_logger = logging.getLogger(__name__)
-
-
 class FroniusInverterApi(InverterApi):
     def __init__(self, conf_folder: str, device_id: int = 1, scope: dict = None):
         super().__init__(conf_folder)
@@ -19,14 +16,15 @@ class FroniusInverterApi(InverterApi):
         }
 
     def _get(self, url, params=None) -> requests.Response:
-        _logger.debug("[me] -> [%s]" % url)
-        resp = self._session.get(url, params=params or {})
+        self._logger.debug("[me] -> [%s]" % url)
+        resp = self._session.get(url, params=params or {}, timeout=5.0)
+        resp.raise_for_status()
         extra = "[no_reason]"
         try:
             extra = resp.json()["Head"]["Status"]["Reason"]
         except KeyError:
             pass
-        _logger.debug("[%s] -> [me]: %s" % (url, extra))
+        self._logger.debug("[%s] -> [me]: %s" % (url, extra))
         return resp
 
     def get_api_version(self) -> dict:

@@ -4,14 +4,15 @@ import threading
 import logging
 import time
 from typing import List
-
-
-_logger = logging.getLogger(__name__)
+import sys
 
 
 class InverterMonitor(threading.Thread):
     def __init__(self, inverter: InverterApi, publisher: Publisher, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._logger = logging.getLogger(__name__)
+        self._logger.addHandler(logging.StreamHandler(stream=sys.stdout))
+        self._logger.setLevel(logging.DEBUG)
         self.inverter = inverter
         self.publisher = publisher
         self.run_event = threading.Event()
@@ -31,7 +32,7 @@ class InverterMonitor(threading.Thread):
     def _one_iter(self):
         data = self.inverter.get_realtime_data()
         if "DAY_ENERGY_Wh" not in data:
-            _logger.warning("Missing expected key! Data: %s" % data)
+            self._logger.warning("Missing expected key! Data: %s" % data)
         self._data_buffer.append(data)
 
         if time.time() > (self._last_push + self._push_interval):
@@ -39,7 +40,7 @@ class InverterMonitor(threading.Thread):
             try:
                 self.publisher.publish_data(avg)
             except PublishError as e:
-                _logger.warning("Failed to publish data: %s" % str(e))
+                self._logger.warning("Failed to publish data: %s" % str(e))
             else:
                 self._data_buffer = []
                 self._last_push = time.time()
