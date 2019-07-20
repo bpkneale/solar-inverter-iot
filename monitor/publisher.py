@@ -1,9 +1,8 @@
 from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTClient
 import os
 import json
-import logging
 import time
-import sys
+from run.log import get_logger
 from typing import Tuple
 
 
@@ -13,10 +12,8 @@ class PublishError(IOError):
 
 class Publisher(object):
     def __init__(self, secrets_folder: str = "secrets"):
+        self._logger = get_logger(__name__)
         self.client, self.thing_name = self.get_client(secrets_folder)
-        self._logger = logging.getLogger(__name__)
-        self._logger.addHandler(logging.StreamHandler(stream=sys.stdout))
-        self._logger.setLevel(logging.DEBUG)
 
     def publish_data(self, data: dict):
         data["publish_time"] = int(time.time())

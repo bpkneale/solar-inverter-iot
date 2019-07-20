@@ -1,18 +1,15 @@
 from inverter.inverter import InverterApi
 from .publisher import Publisher, PublishError
 import threading
-import logging
 import time
 from typing import List
-import sys
+from run.log import get_logger
 
 
 class InverterMonitor(threading.Thread):
     def __init__(self, inverter: InverterApi, publisher: Publisher, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._logger = logging.getLogger(__name__)
-        self._logger.addHandler(logging.StreamHandler(stream=sys.stdout))
-        self._logger.setLevel(logging.DEBUG)
+        self._logger = get_logger(__name__)
         self.inverter = inverter
         self.publisher = publisher
         self.run_event = threading.Event()

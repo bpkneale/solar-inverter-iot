@@ -3,9 +3,12 @@ from inverter.fronius import FroniusInverterApi
 from monitor.publisher import Publisher
 import time
 import logging
-import sys
+import logging.config
+import json
 import argparse
 import signal
+import platform
+from run.log import get_logger
 
 
 WAIT_TIME = 60
@@ -15,15 +18,20 @@ Terminated = False
 def main():
     global Terminated
 
-    _logger = logging.getLogger(__name__)
+    _logger = get_logger(__name__)
     parser = argparse.ArgumentParser(description="Solar Inverter IoT client")
     parser.add_argument("--conf", dest='conf', type=str, help='Path to a configuration folder (certs, conf, etc)',
                         default='conf')
     args = parser.parse_args()
     monitor = None
 
-    _logger.addHandler(logging.StreamHandler(stream=sys.stdout))
-    _logger.setLevel(logging.DEBUG)
+    try:
+        with open('logging_config.json', 'r') as fh:
+            conf = json.load(fh)
+    except IOError:
+        pass
+    else:
+        logging.config.dictConfig(conf)
 
     try:
         while not Terminated:
@@ -41,7 +49,10 @@ def main():
                     monitor.stop(0.0)
 
                 signal.signal(signal.SIGTERM, sigterm_handler)
-                monitor.join()
+
+                # Allow ctrl-c to end script
+                while True:
+                    monitor.join(1.0)
 
             except Exception:
                 _logger.exception("Catching exception (probably IOError?) and waiting %d seconds" % WAIT_TIME)
