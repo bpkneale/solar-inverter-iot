@@ -2,8 +2,13 @@ from inverter.inverter import InverterApi
 from .publisher import Publisher, PublishError
 import threading
 import time
+import datetime
 from typing import List
 from run.log import get_logger
+
+
+class GoToSleepError(IOError):
+    pass
 
 
 class InverterMonitor(threading.Thread):
@@ -27,6 +32,10 @@ class InverterMonitor(threading.Thread):
             self._one_iter()
 
     def _one_iter(self):
+        # Not very robust for sites other than Perth, or potential time zone changes in future
+        if datetime.datetime.now().hour >= 19:
+            raise GoToSleepError("Solar generation probably zero after 7pm, going in for the long sleep")
+
         data = self.inverter.get_realtime_data()
         if "DAY_ENERGY_Wh" not in data:
             self._logger.warning("Missing expected key! Data: %s" % data)
@@ -34,6 +43,7 @@ class InverterMonitor(threading.Thread):
 
         if time.time() > (self._last_push + self._push_interval):
             avg = self._average_data(self._data_buffer)
+
             try:
                 self.publisher.publish_data(avg)
             except PublishError as e:

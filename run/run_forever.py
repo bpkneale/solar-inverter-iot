@@ -1,4 +1,4 @@
-from monitor.monitor import InverterMonitor
+from monitor.monitor import InverterMonitor, GoToSleepError
 from inverter.fronius import FroniusInverterApi
 from monitor.publisher import Publisher
 import time
@@ -7,11 +7,12 @@ import logging.config
 import json
 import argparse
 import signal
-import platform
+import datetime
 from run.log import get_logger
 
 
 WAIT_TIME = 60
+LONG_SLEEP_TIME = 10 * 60 * 60  # 10 hours
 Terminated = False
 
 
@@ -54,9 +55,16 @@ def main():
                 while True:
                     monitor.join(1.0)
 
+            except GoToSleepError as e:
+                _logger.info("Caught: %s" % str(e))
+
             except Exception:
                 _logger.exception("Catching exception (probably IOError?) and waiting %d seconds" % WAIT_TIME)
                 time.sleep(WAIT_TIME)
+
+            if datetime.datetime.now().hour >= 19:
+                _logger.info("Sleeping for 10 hours overnight")
+                time.sleep(LONG_SLEEP_TIME)
 
     except KeyboardInterrupt:
         pass
